@@ -14,15 +14,19 @@
     starter-kit-eshell
     starter-kit-bindings
     iedit
+    autopair
     auto-complete
+    auto-complete-clang-async
     color-theme-solarized
     cyberpunk-theme
+    zenburn-theme
     clojure-mode
     python-mode
     geiser
     ipython
     org
     org2blog
+    markdown-mode+
     nrepl
     ac-nrepl
     nrepl-eval-sexp-fu
@@ -32,7 +36,8 @@
     expand-region
     textmate
     zencoding-mode
-    ack))
+    ack
+    powerline))
 
 (dolist (p my-packages)
   (when (not (package-installed-p p))
@@ -46,3 +51,4 @@
 (mapc (lambda (filename)
         (load filename nil nil t))
       (directory-files my-conf-dir t "\\.elc$"))
+(put 'downcase-region 'disabled nil)
