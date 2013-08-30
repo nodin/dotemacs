@@ -1,15 +1,21 @@
+
 ;; Color theme
-(load-theme 'cyberpunk t)
+(require 'birds-of-paradise-plus-theme)
+(load-theme 'birds-of-paradise-plus t)
+
+;; (setq evil-default-cursor t)
 
 ;; Setting fonts for GUI emacs
 (if (display-graphic-p)
     (progn
       (set-face-attribute
-       'default nil :font "Source Code Pro Semibold 10")
+       'default nil :font "Source Code Pro 9")
       (dolist (charset '(kana han symbol cjk-misc bopomofo))
         (set-fontset-font (frame-parameter nil 'font)
                           charset
-                          (font-spec :family "文泉驿等宽微米黑" :size 16)))))
+                          (font-spec :family "文泉驿等宽微米黑"
+                                     :size 13
+                                     :weight 'light)))))
 
 ;; Change auto-save dir
 (defvar my-backup-dir (concat temporary-file-directory "emacs-backup"))
@@ -38,6 +44,7 @@
 (add-to-list '*textmate-project-roots* ".ropeproject")
 (add-to-list '*textmate-project-roots* ".project")
 (add-to-list '*textmate-project-roots* "build.xml")
+(add-to-list '*textmate-project-roots* "pom.xml")
 (add-to-list '*textmate-project-roots* "build.gradle")
 
 ;; Ack. use textmate project root as ack root dir
@@ -58,14 +65,53 @@
   (set (make-local-variable 'truncate-lines) nil))
 (add-hook 'ido-minibuffer-setup-hook 'ido-disable-line-trucation)
 
+
+;; RET to newline-and-indent
+(defun set-newline-and-indent-key ()
+  (local-set-key (kbd "RET") 'reindent-then-newline-and-indent))
+
+(mapc (lambda (hook) (add-hook hook 'set-newline-and-indent-key))
+      '(c-mode-common-hook))
+
+;; Turn on auto pair for certain modes
+(defun turn-on-autopair-mode ()
+  (autopair-mode 1))
+
+(mapc (lambda (hook) (add-hook hook 'turn-on-autopair-mode))
+      '(python-mode-hook
+        c-mode-common-hook
+        ruby-mode-hook))
+
 ;; Yasnippet
 (require 'yasnippet)
 (yas-global-mode 1)
+
+;; Powerline
+(require 'powerline)
+(powerline-default-theme)
+
+(custom-set-faces
+ '(mode-line ((t (:background "#0088cc" :foreground "white" :box nil))))
+ '(mode-line-inactive ((t (:box nil)))))
 
 ;; Zen-coding
 (require 'zencoding-mode)
 (setq zencoding-indentation 2)
 (add-hook 'sgml-mode-hook 'zencoding-mode)
+
+;; Smooth scrolling
+(setq scroll-margin 10
+      scroll-step 1
+      scroll-conservatively 0
+      scroll-up-aggressively 0.01
+      scroll-down-aggressively 0.01
+      redisplay-dont-pause t)
+(setq-default scroll-up-aggressively 0.01
+              scroll-down-aggressively 0.01)
+
+;; Keep isearch highlight, and use a keybinding to clear it manually
+(setq lazy-highlight-cleanup nil)
+(global-set-key (kbd "C-&") 'lazy-highlight-cleanup)
 
 ;; ===== Custom keybindings ====
 ;;
@@ -74,7 +120,7 @@
 (global-set-key (kbd "C-.") 'next-buffer)
 
 ;; Find files in current project
-(global-set-key (kbd "C-S-r") 'find-file-in-project)
+;(global-set-key (kbd "C-S-r") 'find-file-in-project)
 
 ;; Expand-region
 (global-set-key (kbd "C-=") 'er/expand-region)
@@ -88,3 +134,4 @@
 (global-set-key (kbd "M-o") 'start-newline-prev)
 (global-set-key (kbd "C-:") 'toggle-clj-keyword-string)
 (global-set-key (kbd "C-S-g") 'ack-current-word)
+(global-set-key (kbd "C-*") 'isearch-forward-at-point)

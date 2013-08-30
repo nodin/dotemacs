@@ -16,7 +16,6 @@
 (global-set-key "\C-cc" 'org-capture)
 (global-set-key "\C-cb" 'org-iswitchb)
 
-(add-hook 'rst-mode-hook 'turn-on-orgtbl)
 
 (setq org-capture-templates
       '(("t" "Task" entry (file+headline
@@ -26,15 +25,15 @@
         ("n" "Note" entry (file (concat org-directory "/notes.org"))
          "* %<%D> %^{Title} :NOTE:%^G\n%?")))
 
-(setq org-latex-to-pdf-process 
+(setq org-latex-pdf-process
   '("xelatex -shell-escape -interaction nonstopmode %f"
     "xelatex -shell-escape -interaction nonstopmode %f"
     "xelatex -shell-escape -interaction nonstopmode %f"
     "xelatex -shell-escape -interaction nonstopmode %f")) ;; for multiple passes
 
 ;; Stop org from keep the tables centered
-(setq org-export-latex-tables-centered nil)
-(setq org-export-latex-listings 'minted)
+(setq org-latex-tables-centered nil)
+(setq org-latex-listings 'minted)
 
 (defvar en-article "
 \\documentclass{scrartcl}
@@ -46,6 +45,7 @@
 \\usepackage[top=1in,bottom=1in,left=0.8in,right=0.8in]{geometry}
 \\usepackage[center,pagestyles]{titlesec}
 \\usepackage{indentfirst}
+\\usepackage[export]{adjustbox}
 \\usemintedstyle{emacs}
 \\setlength{\\parskip}{0.5\\baselineskip}
 \\setlength{\\parindent}{0em}
@@ -56,6 +56,13 @@
 \\sethead{\\small\\S\\,\\thesection\\quad\\sectiontitle}{}{$\\cdot$~\\thepage~$\\cdot$}
 \\setfoot{}{}{}\\headrule}
 \\pagestyle{main}
+")
+
+(defvar en-beamer "
+\\documentclass\[presentation\]\{beamer\}
+\\usepackage{minted}
+\\usemintedstyle{emacs}
+\\AtBeginSection[]{\\begin{frame}<beamer>\\frametitle{Topic}\\tableofcontents[currentsection]\\end{frame}}
 ")
 
 (defvar zh-preamble "
@@ -79,11 +86,15 @@
 (defvar cn-article
   (concat en-article zh-preamble))
 
-(require 'org-latex)
-(unless (boundp 'org-export-latex-classes)
-  (setq org-export-latex-classes nil))
+(defvar cn-beamer
+  (concat en-beamer zh-preamble))
 
-(add-to-list 'org-export-latex-classes
+(require 'ox-latex)
+(require 'ox-beamer)
+(unless (boundp 'org-latex-classes)
+  (setq org-latex-classes nil))
+
+(add-to-list 'org-latex-classes
              `("article"
                ,en-article
                ("\\section{%s}" . "\\section*{%s}")
@@ -91,7 +102,7 @@
                ("\\subsubsection{%s}" . "\\subsubsection*{%s}")
                ("\\paragraph{%s}" . "\\paragraph*{%s}")
                ("\\subparagraph{%s}" . "\\subparagraph*{%s}")))
-(add-to-list 'org-export-latex-classes
+(add-to-list 'org-latex-classes
               `("cn-article"
                 ,cn-article
                 ("\\section{%s}" . "\\section*{%s}")
@@ -99,20 +110,21 @@
                 ("\\subsubsection{%s}" . "\\subsubsection*{%s}")
                 ("\\paragraph{%s}" . "\\paragraph*{%s}")
                 ("\\subparagraph{%s}" . "\\subparagraph*{%s}")))
+(add-to-list 'org-latex-classes
+              `("beamer"
+                ,en-beamer
+                ("\\section{%s}" . "\\section*{%s}")
+                ("\\subsection{%s}" . "\\subsection*{%s}")
+                ("\\subsubsection{%s}" . "\\subsubsection*{%s}")
+                ("\\paragraph{%s}" . "\\paragraph*{%s}")
+                ("\\subparagraph{%s}" . "\\subparagraph*{%s}")))
+(add-to-list 'org-latex-classes
+              `("cn-beamer"
+                ,cn-beamer
+                ("\\section{%s}" . "\\section*{%s}")
+                ("\\subsection{%s}" . "\\subsection*{%s}")
+                ("\\subsubsection{%s}" . "\\subsubsection*{%s}")
+                ("\\paragraph{%s}" . "\\paragraph*{%s}")
+                ("\\subparagraph{%s}" . "\\subparagraph*{%s}")))
 
-(require 'org-beamer)
-(defvar beamer-opts "
-\\usepackage{minted}
-\\usemintedstyle{emacs}
-\\AtBeginSection[]{\\begin{frame}<beamer>\\frametitle{Topic}\\tableofcontents[currentsection]\\end{frame}}
-")
-(defvar my-beamer-headers
-  (concat beamer-opts zh-preamble))
 
-(defadvice org-beamer-amend-header (before insert-my-beamer-headers
-                                           ()
-                                           activate)
-  (setq org-beamer-header-extra
-        (concat my-beamer-headers org-beamer-header-extra)))
-
-(require 'org-confluence)
